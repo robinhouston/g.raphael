@@ -200,7 +200,7 @@ Raphael.fn.g.linechart = function (x, y, width, height, valuesx, valuesy, opts) 
                 f && f.call(C);
             }
         }
-        !f && (dots = cvrs);
+        !f && (chart.dots = dots = cvrs);
     }
     chart.push(lines, shades, symbols, axis, columns, dots);
     chart.lines = lines;
