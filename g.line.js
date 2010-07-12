@@ -79,11 +79,11 @@ Raphael.fn.g.linechart = function (x, y, width, height, valuesx, valuesy, opts) 
     var allx = Array.prototype.concat.apply([], valuesx),
         ally = Array.prototype.concat.apply([], valuesy),
         xdim = this.g.snapEnds(Math.min.apply(Math, allx), Math.max.apply(Math, allx), valuesx[0].length - 1),
-        minx = xdim.from,
-        maxx = xdim.to,
+        minx = opts.axisxmin != null ? opts.axisxmin : xdim.from,
+        maxx = opts.axisxmax != null ? opts.axisxmax : xdim.to,
         ydim = this.g.snapEnds(Math.min.apply(Math, ally), Math.max.apply(Math, ally), valuesy[0].length - 1),
-        miny = ydim.from,
-        maxy = ydim.to,
+        miny = opts.axisymin != null ? opts.axisymin : ydim.from,
+        maxy = opts.axisymax != null ? opts.axisymax : ydim.to,
         kx = (width - gutter * 2) / ((maxx - minx) || 1),
         ky = (height - gutter * 2) / ((maxy - miny) || 1);
 
@@ -146,7 +146,7 @@ Raphael.fn.g.linechart = function (x, y, width, height, valuesx, valuesy, opts) 
         for (var i = 0, ii = valuesx.length; i < ii; i++) {
             Xs = Xs.concat(valuesx[i]);
         }
-        Xs.sort();
+        Xs.sort(function(a,b) { return a - b; });
         // remove duplicates
         var Xs2 = [],
             xs = [];
