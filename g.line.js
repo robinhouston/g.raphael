@@ -203,13 +203,7 @@ Raphael.fn.g.linechart = function (x, y, width, height, valuesx, valuesy, opts) 
     }
     function disableHiddenDots() {
         for (var i = 0, ii = dots.length; i < ii; i++) {
-            var dot = dots[i];
-            var symbol = Raphael.vml ? dot.symbol.Group : dot.symbol.node;
-            if (symbol.style.display == "none") {
-                dot.node.style.display = "none";
-            } else {
-                dot.node.style.display = "";
-            }
+            dots[i].node.style.display = dots[i].line.node.style.display;
         }
     }
     function createDots(f) {
@@ -289,12 +283,14 @@ Raphael.fn.g.linechart = function (x, y, width, height, valuesx, valuesy, opts) 
     chart.showGraph = function (index) {
         lines[index].show();
         symbols[index].show();
-        if (dots) disableHiddenDots();
+        opts.shade && shades[index].show();
+        dots && disableHiddenDots();
     };
     chart.hideGraph = function(index) {
         lines[index].hide();
         symbols[index].hide();
-        if (dots) disableHiddenDots();
+        opts.shade && shades[index].hide();
+        dots && disableHiddenDots();
     };
     return chart;
 };
