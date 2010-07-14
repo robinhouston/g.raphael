@@ -83,17 +83,38 @@ Raphael.fn.g.linechart = function (x, y, width, height, valuesx, valuesy, opts) 
         maxx = opts.axisxmax != null ? opts.axisxmax : xdim.to,
         ydim = this.g.snapEnds(Math.min.apply(Math, ally), Math.max.apply(Math, ally), valuesy[0].length - 1),
         miny = opts.axisymin != null ? opts.axisymin : ydim.from,
-        maxy = opts.axisymax != null ? opts.axisymax : ydim.to,
-        kx = (width - gutter * 2) / ((maxx - minx) || 1),
+        maxy = opts.axisymax != null ? opts.axisymax : ydim.to;
+
+    if (opts.axisxinterval) maxx = minx + opts.axisxinterval * Math.ceil((maxx - minx) / opts.axisxinterval);
+    if (opts.axisyinterval) maxy = miny + opts.axisyinterval * Math.ceil((maxy - miny) / opts.axisyinterval);
+
+    var kx = (width - gutter * 2) / ((maxx - minx) || 1),
         ky = (height - gutter * 2) / ((maxy - miny) || 1);
 
     var axis = this.set();
     if (opts.axis) {
         var ax = (opts.axis + "").split(/[,\s]+/);
-        +ax[0] && axis.push(this.g.axis(x + gutter, y + gutter, width - 2 * gutter, minx, maxx, opts.axisxstep || Math.floor((width - 2 * gutter) / 20), 2));
-        +ax[1] && axis.push(this.g.axis(x + width - gutter, y + height - gutter, height - 2 * gutter, miny, maxy, opts.axisystep || Math.floor((height - 2 * gutter) / 20), 3));
-        +ax[2] && axis.push(this.g.axis(x + gutter, y + height - gutter, width - 2 * gutter, minx, maxx, opts.axisxstep || Math.floor((width - 2 * gutter) / 20), 0));
-        +ax[3] && axis.push(this.g.axis(x + gutter, y + height - gutter, height - 2 * gutter, miny, maxy, opts.axisystep || Math.floor((height - 2 * gutter) / 20), 1));
+        var numticksx, numticksy;
+        if (+ax[0] || +ax[2]) {
+            if (opts.axisxinterval) {
+                numticksx = Math.round((maxx - minx) / opts.axisxinterval);
+            } else {
+                // Put a tick mark every 20px or so, or as specified by opts.axisxstep
+                numticksx = opts.axisxstep || Math.floor((width - 2 * gutter) / 20);
+            }
+        }
+        if (+ax[1] || +ax[3]) {
+            if (opts.axisyinterval) {
+                numticksy = Math.round((maxy - miny) / opts.axisyinterval);
+            } else {
+                // Put a tick mark every 20px or so, or as specified by opts.axisystep
+                numticksy = opts.axisystep || Math.floor((height - 2 * gutter) / 20);
+            }
+        }
+        +ax[0] && axis.push(this.g.axis(x + gutter, y + gutter, width - 2 * gutter, minx, maxx, numticksx, 2));
+        +ax[1] && axis.push(this.g.axis(x + width - gutter, y + height - gutter, height - 2 * gutter, miny, maxy, numticksy, 3));
+        +ax[2] && axis.push(this.g.axis(x + gutter, y + height - gutter, width - 2 * gutter, minx, maxx, numticksx, 0));
+        +ax[3] && axis.push(this.g.axis(x + gutter, y + height - gutter, height - 2 * gutter, miny, maxy, numticksy, 1));
     }
     var lines = this.set(),
         symbols = this.set(),
@@ -180,6 +201,17 @@ Raphael.fn.g.linechart = function (x, y, width, height, valuesx, valuesy, opts) 
         }
         !f && (columns = cvrs);
     }
+    function disableHiddenDots() {
+        for (var i = 0, ii = dots.length; i < ii; i++) {
+            var dot = dots[i];
+            var symbol = Raphael.vml ? dot.symbol.Group : dot.symbol.node;
+            if (symbol.style.display == "none") {
+                dot.node.style.display = "none";
+            } else {
+                dot.node.style.display = "";
+            }
+        }
+    }
     function createDots(f) {
         var cvrs = f || that.set(),
             C;
@@ -200,8 +232,12 @@ Raphael.fn.g.linechart = function (x, y, width, height, valuesx, valuesy, opts) 
                 f && f.call(C);
             }
         }
-        !f && (chart.dots = dots = cvrs);
+        if (!f) {
+            dots = cvrs;
+            disableHiddenDots();
+        }
     }
+
     chart.push(lines, shades, symbols, axis, columns, dots);
     chart.lines = lines;
     chart.shades = shades;
@@ -249,6 +285,16 @@ Raphael.fn.g.linechart = function (x, y, width, height, valuesx, valuesy, opts) 
     chart.eachColumn = function (f) {
         createColumns(f);
         return this;
+    };
+    chart.showGraph = function (index) {
+        lines[index].show();
+        symbols[index].show();
+        if (dots) disableHiddenDots();
+    };
+    chart.hideGraph = function(index) {
+        lines[index].hide();
+        symbols[index].hide();
+        if (dots) disableHiddenDots();
     };
     return chart;
 };
